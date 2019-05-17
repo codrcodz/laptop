@@ -1,0 +1,17 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: ensure required repo gpg keys are installed
+    apt_key:
+      url: "{{ item }}"
+    with_items: "{{ laptop_repo_keys }}"
+  
+  - name: ensure required repositories are installed
+    apt_repository:
+      repo: "{{ item }}"
+    with_items: "{{ laptop_repos }}"
+
+  tags:
+    - repos
+...

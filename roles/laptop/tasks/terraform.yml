@@ -1,0 +1,76 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: check to see if hashicorp key is already on local system
+    shell: "gpg --list-key 51852D87348FFC4C"
+    register: list_key
+    become: "no"
+    changed_when: false
+    failed_when: false
+  
+  - name: ensure hashicorp's public gpg key is imported
+    shell: "gpg --recv-key 51852D87348FFC4C"
+    register: recv_key
+    changed_when: "'imported' in recv_key.stderr"
+    become: "no"
+    when: list_key.rc == 2
+  
+  - name: parse latest available terraform version from hashicorp website
+    script: "files/terraform_version_parser.sh"
+    register: terraform_version
+    changed_when: false
+  
+  - name: ensure directory is in place to store hashicorp terraform installation files
+    file:
+      dest: "{{ homedir }}/.install/hashicorp/terraform"
+      state: "directory"
+    become: "no"
+  
+  - name: ensure latest terraform installation files have been downloaded from hashicorp website
+    get_url:
+      url: "https://releases.hashicorp.com/terraform/{{ terraform_version.stdout_lines[0] }}/{{ item }}"
+      dest: "{{ homedir }}/.install/hashicorp/terraform"
+    become: "no"
+    with_items:
+      - "terraform_{{ terraform_version.stdout_lines[0] }}_linux_amd64.zip"
+      - "terraform_{{ terraform_version.stdout_lines[0] }}_SHA256SUMS"
+      - "terraform_{{ terraform_version.stdout_lines[0] }}_SHA256SUMS.sig"
+  
+  - name: ensure gpg signature on checksum file matches hashicorp-signed signature file
+    shell: "gpg --verify {{ item }}_SHA256SUMS.sig {{ item }}_SHA256SUMS"
+    changed_when: false
+    become: "no"
+    with_items:
+      - "{{ homedir }}/.install/hashicorp/terraform/terraform_{{ terraform_version.stdout_lines[0] }}"
+  
+  - name: ensure the checksum file matches the checksum of the hashicorp terraform binary
+    shell: "sha256sum --ignore-missing -c terraform_{{ terraform_version.stdout_lines[0] }}_SHA256SUMS"
+    args:
+      chdir: "{{ homedir }}/.install/hashicorp/terraform/"
+    changed_when: false
+    become: "no"
+    register: gpg_check
+  
+  - name: if gpg check passes, ensure gpg-signed hashicorp terraform zip is installed and latest
+    unarchive:
+      src: "{{ homedir }}/.install/hashicorp/terraform/terraform_{{ terraform_version.stdout_lines[0] }}_linux_amd64.zip"
+      dest: "{{ homedir }}/.install/hashicorp/terraform/"
+      creates: "{{ homedir }}/.install/hashicorp/terraform/terraform"
+      remote_src: true
+    become: "no"
+    when: gpg_check.rc == 0
+  
+  - name: ensure the terraform binary is in path
+    copy:
+      src: "{{ homedir }}/.install/hashicorp/terraform/terraform"
+      remote_src: true
+      dest: "/usr/local/bin/terraform"
+      mode: "0755"
+      owner: "root"
+      group: "root"
+    become: "yes"
+   
+  tags:
+    - terraform  #run this block a la carte when task block's name is passed as a tag
+...

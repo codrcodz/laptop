@@ -1,0 +1,55 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: ensure directory is in place to store github/hub installation files
+    file:
+      dest: "~/.install/github/hub"
+      state: "directory"
+    become: "no"
+  
+  - name: get latest release metadata of github/hub via github rest api
+    get_url:
+      url: "https://api.github.com/repos/github/hub/releases/latest"
+      dest: "~/.install/github/hub/latest_release_metadata.json"
+    become: "no"
+    register: hub_metadata
+  
+  - name: get asset url for latest github/hub release
+    script: 'files/download_github_release_assets.sh github hub "Linux\s64-bit"'
+    become: "no"
+    changed_when: false
+    register: github_hub_url
+  
+  - name: ensure latest release of github/hub is installed from github/hub
+    get_url:
+      url: "{{ github_hub_url.stdout }}"
+      dest: "~/.install/github/hub/hub-latest.tgz"
+    become: "no"
+    register: new_hub_release
+  
+  - name: unarchive github/hub in .install directory
+    unarchive:
+      src: "~/.install/github/hub/hub-latest.tgz"
+      dest: "~/.install/github/hub/"
+      mode: 0755
+    become: "no"
+    register: hub_unarchive
+    when: new_hub_release.changed
+  
+  - name: ensure github/hub is installed in path
+    shell: "sudo ~/.install/github/hub/*/install && rm ~/.install/github/hub/*/install;"
+    args:
+      warn: false
+    become: "no"
+    when: hub_unarchive.changed
+  
+  - name: ensure directory is in place to store docker/compose installation files
+    file:
+      dest: "~/.install/docker/compose"
+      state: "directory"
+    become: "no"
+
+  tags:
+    - hub  #run this block a la carte when task block's name is passed as a tag
+...

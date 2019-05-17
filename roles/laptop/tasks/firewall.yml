@@ -1,0 +1,101 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: ensure useless firewall (ufw) is disabled, stopped, and masked
+    systemd:
+      name: "ufw"
+      state: "stopped"
+      enabled: "no"
+      masked: "yes"
+  
+  - name: ensure firewalld is installed and latest
+    apt:
+      name: "firewalld"
+      state: "present"
+
+  - name: ensure firewalld is enabled, started, and unmasked
+    systemd:
+      name: "firewalld"
+      state: "started"
+      enabled: "yes"
+      masked: "no"
+  
+  - name: get current zones associated with internal zone
+    shell: "for interface in $(firewall-cmd --zone=internal --list-interfaces); do echo $interface; done"
+    changed_when: false
+    register: internal_interfaces
+  
+  - name: get list of all enabled services on firewall internal zone
+    shell: "for service in $(firewall-cmd --zone=internal --list-services); do echo $service; done"
+    changed_when: false
+    register: get_fw_internal_services
+  
+  - name: get list of all enabled ports on firewall internal zone
+    shell: "for port in $(firewall-cmd --zone=internal --list-ports); do echo $port; done"
+    changed_when: false
+    register: get_fw_internal_ports
+  
+  - name: get list of all enabled services on firewall default zone
+    shell: "for service in $(firewall-cmd --list-services); do echo $service; done"
+    changed_when: false
+    register: get_fw_default_services
+  
+  - name: get list of all enabled ports on firewall default zone
+    shell: "for port in $(firewall-cmd --list-ports); do echo $port; done"
+    changed_when: false
+    register: get_fw_default_ports
+  
+  - name: ensure required services enabled on internal firewall zone
+    shell: "firewall-cmd --permanent --zone=internal --add-service={{ item }}"
+    with_items: "{{ laptop_internal_services }}"
+    when: item not in get_fw_internal_services.stdout
+    notify: reload firewalld
+  
+  - name: ensure non-required services not enabled on internal firewall zone
+    shell: "firewall-cmd --permanent --zone=internal --remove-service={{ item }}"
+    with_items: "{{ get_fw_internal_services.stdout_lines }}" 
+    when: item not in laptop_internal_services
+    notify: reload firewalld
+  
+  - name: ensure required ports enabled on internal firewall zone
+    shell: "firewall-cmd --permanent --zone=internal --add-port={{ item }}"
+    with_items: "{{ laptop_internal_ports }}"
+    when: item not in get_fw_internal_ports.stdout
+    notify: reload firewalld
+  
+  - name: ensure non-required ports not enabled on internal firewall zone
+    shell: "firewall-cmd --permanent --zone=internal --remove-port={{ item }}"
+    with_items: "{{ get_fw_internal_ports.stdout_lines }}"
+    when: item not in laptop_internal_ports
+    notify: reload firewalld
+  
+  - name: ensure required services enabled on default firewall zone
+    shell: "firewall-cmd --permanent --add-service={{ item }}"
+    with_items: "{{ laptop_default_services }}"
+    when: item not in get_fw_default_services.stdout
+    notify: reload firewalld
+  
+  - name: ensure non-required services not enabled on default firewall zone
+    shell: "firewall-cmd --permanent --remove-service={{ item }}"
+    with_items: "{{ get_fw_default_services.stdout_lines }}"
+    when: item not in laptop_default_services
+    notify: reload firewalld
+  
+  - name: ensure required ports enabled on default firewall zone
+    shell: "firewall-cmd --permanent --add-port={{ item }}"
+    with_items: "{{ laptop_default_ports }}"
+    when: item not in get_fw_default_ports.stdout
+    notify: reload firewalld
+  
+  - name: ensure non-required ports not enabled on default firewall zone
+    shell: "firewall-cmd --permanent --remove-port={{ item }}"
+    with_items: "{{ get_fw_default_ports.stdout_lines }}"
+    when: item not in laptop_default_ports
+    notify: reload firewalld
+
+  - meta: flush_handlers
+
+  tags:
+    - firewall
+...

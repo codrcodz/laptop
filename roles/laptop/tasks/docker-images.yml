@@ -1,0 +1,15 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+   - name: ensure docker images are installed and updated
+     docker_image:
+       name: "{{ item.name }}"
+       tag: "{{ item.tag }}"
+     with_items:
+       - "{{ laptop_docker_images }}"
+
+  tags:
+    - never #this task only runs when explicitly called in case of bandwidth constraints
+    - docker-images  #run this block a la carte when task block's name is passed as a tag
+...

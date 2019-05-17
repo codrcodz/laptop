@@ -1,0 +1,4 @@
+---
+# handlers file for laptop
+- name: reload firewalld
+  shell: "firewall-cmd --reload"

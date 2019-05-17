@@ -1,0 +1,17 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: ensure vagrant required boxes are installed and up-to-date
+    script: "files/manage_vagrant_boxes.sh {{ item.name }} {{ item.provider }}"
+    become: "no"
+    register: result
+    changed_when: result.rc == 11
+    failed_when: result.rc == 1
+    with_items:
+      - "{{ laptop_vagrant_boxes }}"
+
+  tags:
+    - never #this task takes so long to run, it is best to do it only when explicitly called
+    - vagrant-boxes  #run this block a la carte when task block's name is passed as a tag
+...

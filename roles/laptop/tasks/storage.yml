@@ -1,0 +1,40 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: ensure storage partition is configured and mounted properly
+    parted:
+      device: "/dev/sda"
+      number: "1"
+      state: "present"
+      flags: [lvm]
+  
+  - name: ensure volume group for storage partition is configured properly
+    lvg:
+     vg: "storage"
+     pvs: "/dev/sda1"
+  
+  - name: ensure logical volume for storage partition is configured properly
+    lvol:
+      lv: "storage"
+      vg: "storage"
+      size: "+100%FREE"
+  
+  - name: ensure filesystem is properly configured on storage partition
+    filesystem:
+      fstype: "ext4"
+      dev: "/dev/mapper/storage-storage"
+  
+  - name: ensure storage partition is mounted persistently
+    mount:
+      path: "/home"
+      src: "/dev/mapper/storage-storage"
+      fstype: "ext4"
+      state: "mounted"
+
+  tags:
+    - never   #do not run this block when no tags are passed (aka when implicit "all" tag passed)
+    - init    #run this block during initial bootstrap, when "init" tag passed
+    - update  #run this block during updates, after initial bootstrap, when "update" tag passed
+    - storage  #run this block a la carte when task block's name is passed as a tag
+...

@@ -1,0 +1,26 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: ensure apt cache is up to date
+    apt:
+      update_cache: "yes"
+    changed_when: false
+  
+  - name: ensure aptitude is installed
+    apt:
+      name: "aptitude"
+      state: "latest"
+  
+  - name: ensure system packages are installed
+    apt:
+      name: "{{ laptop_packages }}"
+      state: "latest"
+
+  - name: ensure all installed system packages are latest
+    apt:
+      upgrade: "yes"
+
+  tags:
+    - system-packages
+...

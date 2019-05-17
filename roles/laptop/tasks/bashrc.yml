@@ -1,0 +1,30 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: ensure user main ~/.bashrc is sourcing ~/.bashrc.d/
+    lineinfile:
+      path: "/home/{{ username }}/.bashrc"
+      state: "present"
+      line: "source ~/.bashrc.d/*.bashrc"
+  
+  - name: ensure bashrc extension directory (~/.bashrc.d/) exists
+    file:
+      name: "/home/{{ username }}/.bashrc.d/"
+      state: "directory"
+      owner: "{{ username }}"
+      group: "{{ username }}"
+      mode: "0750"
+    become: "no"
+  
+  - name: ensure .bashrc extensions are present and latest
+    template:
+      src: "templates/{{ item }}.bashrc.j2"
+      dest: "/home/{{ username }}/.bashrc.d/{{ item }}.bashrc"
+    become: "no"
+    with_items:
+      - "{{ laptop_bashrc_extensions }}"
+
+  tags:
+    - bashrc
+...

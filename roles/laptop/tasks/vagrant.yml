@@ -1,0 +1,91 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: check to see if hashicorp key is already on local system
+    shell: "gpg --list-key 51852D87348FFC4C"
+    register: list_key
+    become: "no"
+    changed_when: false
+    failed_when: false
+  
+  - name: ensure hashicorp's public gpg key is imported
+    shell: "gpg --recv-key 51852D87348FFC4C"
+    register: recv_key
+    changed_when: "'imported' in recv_key.stderr"
+    become: "no"
+    when: list_key.rc == 2
+  
+  - name: parse latest available vagrant version from hashicorp website
+    script: "files/vagrant_version_parser.sh"
+    register: vagrant_version
+    changed_when: false
+  
+  - name: ensure directory is in place to store hashicorp vagrant installation files
+    file:
+      dest: "~/.install/hashicorp/vagrant"
+      state: "directory"
+    become: "no"
+  
+  - name: ensure latest vagrant installation files have been downloaded from hashicorp website
+    get_url:
+      url: "https://releases.hashicorp.com/vagrant/{{ vagrant_version.stdout_lines[0] }}/{{ item }}"
+      dest: "~/.install/hashicorp/vagrant"
+    become: "no"
+    with_items:
+      - "vagrant_{{ vagrant_version.stdout_lines[0] }}_x86_64.deb"
+      - "vagrant_{{ vagrant_version.stdout_lines[0] }}_SHA256SUMS"
+      - "vagrant_{{ vagrant_version.stdout_lines[0] }}_SHA256SUMS.sig"
+  
+  - name: ensure gpg signature on checksum file matches hashicorp-signed signature file
+    shell: "gpg --verify {{ item }}{{ vagrant_version.stdout_lines[0] }}_SHA256SUMS.sig {{ item }}{{ vagrant_version.stdout_lines[0] }}_SHA256SUMS"
+    changed_when: false
+    become: "no"
+    with_items:
+      - "~/.install/hashicorp/vagrant/vagrant_"
+  
+  - name: ensure the checksum file matches the checksum of the hashicorp vagrant binary
+    shell: "sha256sum --ignore-missing -c vagrant_{{ vagrant_version.stdout_lines[0] }}_SHA256SUMS"
+    args:
+      chdir: "~/.install/hashicorp/vagrant/"
+    changed_when: false
+    become: "no"
+    register: gpg_check
+  
+  - name: if gpg check passes, ensure gpg-signed hashicorp vagrant debian package is installed and latest
+    shell: "sudo gdebi -n ~/.install/hashicorp/vagrant/vagrant_{{ vagrant_version.stdout_lines[0] }}_x86_64.deb"
+    args:
+      creates: "/opt/vagrant/embedded/gems/2.2.3/bin/vagrant"
+      warn: "no"
+    become: "no"
+    when: gpg_check.rc == 0
+  
+  - name: store list of installed vagrant plugins for parsing in later task
+    shell: "vagrant plugin list"
+    args:
+      warn: false
+    become: "no"
+    register: plugin_list
+    changed_when: false
+  
+  - name: ensure required vagrant plugins are installed
+    shell: "sudo vagrant plugin install {{ item }}"
+    args:
+      warn: false
+    become: "no"
+    register: plugin_install
+    when: item not in plugin_list.stdout
+    with_items:
+      - "{{ laptop_vagrant_plugins }}"
+  
+  - name: ensure vagrant is able to manipulate nfs server with passwordless sudo
+    template:
+      src: "templates/passwordless-vagrant-nfs"
+      dest: "/etc/sudoers.d/passwordless-vagrant-nfs"
+      mode: "0750"
+      owner: "root"
+      group: "root"
+
+  tags:
+    - vagrant  #run this block a la carte when task block's name is passed as a tag
+...

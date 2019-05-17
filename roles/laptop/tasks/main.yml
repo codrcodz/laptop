@@ -1,0 +1,22 @@
+---
+- name: parses tags and conditionally includes blocks of tasks from inside each included tasks file
+  include: "{{ tasks }}.yml"
+  loop:
+    - firewall
+    - bashrc
+    - python-packages
+    - repos
+    - system-packages
+    - storage
+    - git 
+    - docker
+    - docker-compose
+    - docker-images
+    - hub
+    - travis
+    - vagrant
+    - vagrant-boxes
+    - terraform
+  loop_control:
+    loop_var: "tasks"
+...

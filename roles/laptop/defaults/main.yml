@@ -1,0 +1,155 @@
+---
+# defaults file for laptop
+#
+username: "ccochran"
+github_name: "codrcodz"
+email: "cody.l.cochran@gmail.com"
+homedir: "/home/ccochran"
+venv_tld: "{{ homedir }}/venv"
+
+laptop_internal_ports:
+  - 2049/udp
+
+laptop_default_ports:
+  - 80/tcp
+  - 443/tcp
+
+laptop_internal_services:
+  - nfs
+  - mountd
+  - rpc-bind
+  - dhcpv6-client
+  - ssh
+
+laptop_default_services:
+  - ssh
+  - http
+  - https
+  - dhcpv6-client
+
+laptop_repos:
+  - "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+  - "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main"
+
+laptop_repo_keys:
+  - "https://download.docker.com/linux/ubuntu/gpg"
+  - "https://packagecloud.io/AtomEditor/atom/gpgkey"
+
+laptop_packages:
+ # misc requirements
+  - bash-completion
+  - tree
+  - vim
+  - git
+  - git-flow
+  - atom
+  - meld
+  - nmap
+  - htop
+  - clusterssh
+  - tmux
+  - screen
+  - jq
+  - gdebi
+  - apt-file
+  - firewalld
+  - gcc
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - bridge-utils
+  - linux-headers-{{ lookup('pipe','uname -r') }}
+  - make
+  - snap
+  - python3-dev
+  - python3-distutils
+  - python3-virtualenv
+  - tor
+  - torbrowser-launcher
+  - hexchat
+ # vagrant requirements
+  - ruby-dev
+  - libxslt-dev
+  - libxml2-dev
+  - libvirt-dev
+  - zlib1g-dev
+  - ruby-dev
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - software-properties-common
+ # nfs requirements
+  - sysfsutils
+  - nfs-kernel-server
+  - zlib1g-dev
+ # docker requirements
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+ # ara requirements
+  - gcc
+  - libffi-dev
+  - libssl-dev
+ # virtualbox requirements
+  - gcc
+  - make
+  - virtualbox
+  - virtualbox-dkms
+  - virtualbox-guest-dkms-hwe
+  - virtualbox-guest-utils
+  - virtualbox-guest-x11
+  - virtualbox-qt
+  - virtualbox-guest-additions-iso
+
+laptop_bashrc_extensions:
+  - virtualenvwrapper
+  - localbins
+  - snapd
+
+laptop_vagrant_plugins:
+  - vagrant-hostmanager
+  - vagrant-scp
+
+laptop_vagrant_boxes:
+  - name: generic/centos7
+    provider: virtualbox
+  - name: generic/centos7
+    provider: libvirt
+  - name: generic/ubuntu1604
+    provider: virtualbox
+  - name: generic/ubuntu1804
+    provider: virtualbox
+  - name: generic/ubuntu1804
+    provider: libvirt
+  - name: generic/fedora30
+    provider: virtualbox
+  - name: generic/debian9
+    provider: virtualbox
+
+laptop_python_pkgs:
+  - name: virtualenvwrapper
+  - name: docker
+  - name: ansible
+    version: 2.7
+
+laptop_docker_images:
+  - name: debian
+    tag: latest
+  - name: alpine
+    tag: latest
+  - name: centos
+    tag: latest
+  - name: centos
+    tag: 6
+  - name: ubuntu
+    tag: 18.04
+  - name: ubuntu
+    tag: 16.04
+  - name: ubuntu
+    tag: latest
+  - name: fedora
+    tag: latest
+  - name: cirros
+    tag: latest

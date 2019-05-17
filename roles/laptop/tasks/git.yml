@@ -1,0 +1,22 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: ensure system gitconfig (/etc/gitconfig) is configured properly
+    git_config:
+      name: "{{ item.name }}"
+      value: "{{ item.value }}"
+      scope: "system"
+    become: true
+    become_method: "sudo"
+    become_user: "root"
+    with_items:
+      - { name: "core.editor", value: "vim" }
+      - { name: "user.name", value: "{{ github_name }}" }
+      - { name: "user.email", value: "{{ email }}" }
+      - { name: "commit.template", value: "/etc/git_commit_template.txt" }
+      - { name: "branch.autosetuprebase", value: "always" }
+
+  tags:
+    - git  #run this block a la carte when task block's name is passed as a tag
+...

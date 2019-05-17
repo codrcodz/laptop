@@ -1,0 +1,27 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+   - name: ensure directory is in place to store docker/compose installation files
+     file:
+       dest: "~/.install/docker/compose"
+       state: "directory"
+     become: "no"
+   
+   - name: determine the latest docker/compose release from github
+     shell: 'curl -s https://github.com/docker/compose/releases/latest/ | grep -oP "(?<=(tag/)).*(?=(\"))"'
+     args:
+       warn: false
+     become: "no"
+     changed_when: false
+     register: docker_compose_latest
+   
+   - name: ensure the latest docker/compose release is installed from github
+     get_url:
+       url: "https://github.com/docker/compose/releases/download/{{ docker_compose_latest.stdout }}/docker-compose-Linux-x86_64"
+       dest: "/usr/local/bin/docker-compose"
+       mode: "0755"
+
+  tags:
+    - docker-compose  #run this block a la carte when task block's name is passed as a tag
+...

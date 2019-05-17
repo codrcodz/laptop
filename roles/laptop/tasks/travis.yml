@@ -1,0 +1,12 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: ensure travis-ci gem is installed and latest
+    gem:
+      name: "travis"
+      state: "latest"
+
+  tags:
+    - travis  #run this block a la carte when task block's name is passed as a tag
+...

@@ -1,0 +1,14 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+  - name: ensure docker daemon is started and enabled on boot
+    systemd:
+      name: "docker"
+      state: "started"
+      enabled: "yes"
+      masked: "no"
+
+  tags:
+    - docker  #run this block a la carte when task block's name is passed as a tag
+...
