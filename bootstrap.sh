@@ -6,5 +6,5 @@ if [[ "${EUID}" != "0" ]] || [[ "${#SUDO_USER}" != "0" ]]; then
   exit 1;
 fi
 
-apt-get update && apt-get install -y python3-pip && pip3 install ansible==2.7;
+apt-get update && apt-get install -y python3-pip && pip3 install ansible==2.8;
 

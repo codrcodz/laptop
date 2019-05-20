@@ -128,11 +128,7 @@ laptop_vagrant_boxes:
   - name: generic/debian9
     provider: virtualbox
 
-laptop_python_pkgs:
-  - name: virtualenvwrapper
-  - name: docker
-  - name: ansible
-    version: 2.7
+#laptop_python_pkgs:
 
 laptop_docker_images:
   - name: debian
