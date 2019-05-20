@@ -1,0 +1,54 @@
+---
+- name: this block contains a grouping of tasks related to a specific tag
+  block:
+
+   - name: ensure directory is in place to store docker/compose installation files
+     file:
+       dest: "{{ homedir }}/.install/digitalocean/doctl/"
+       state: "directory"
+     become: "yes"
+     become_method: "su"
+     become_user: "{{ username }}"
+   
+   - name: determine the latest digitalocean/doctl release from github
+     shell: 'curl -s https://github.com/digitalocean/doctl/releases/latest/ | grep -oP "(?<=(tag/)).*(?=(\"))"'
+     args:
+       warn: false
+     become: "yes"
+     become_method: "su"
+     become_user: "{{ username }}"
+     changed_when: false
+     register: doctl_latest
+   
+   - name: ensure the latest digitalocean/doctl release is installed from github
+     get_url:
+       url: "https://github.com/digitalocean/doctl/releases/download/{{ doctl_latest.stdout }}/doctl-{{ doctl_latest.stdout | regex_replace('v', '') }}-linux-amd64.tar.gz"
+       dest: "{{ homedir }}/.install/digitalocean/doctl/"
+     become: "yes"
+     become_method: "su"
+     become_user: "{{ username }}"
+
+   - name: ensure the latest digitalocean/doctl release is unarchived
+     unarchive:
+       remote_src: true
+       src: "{{ homedir }}/.install/digitalocean/doctl/doctl-{{ doctl_latest.stdout | regex_replace('v', '') }}-linux-amd64.tar.gz"
+       dest: "{{ homedir }}/.install/digitalocean/doctl/"
+     become: "yes"
+     become_method: "su"
+     become_user: "{{ username }}"
+
+   - name: ensure the latest digitalocean/doctl release is in path
+     copy:
+       remote_src: true
+       src: "{{ homedir }}/.install/digitalocean/doctl/doctl"
+       dest: "/usr/local/bin/"
+       mode: "0755"
+       owner: "root"
+       group: "root"
+     become: "yes"
+     become_method: "sudo"
+     become_user: "root"
+
+  tags:
+    - doctl  #run this block a la carte when task block's name is passed as a tag
+...

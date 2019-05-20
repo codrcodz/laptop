@@ -13,6 +13,7 @@
     - docker-compose
     - docker-images
     - hub
+    - doctl
     - travis
     - vagrant
     - vagrant-boxes

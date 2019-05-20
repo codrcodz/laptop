@@ -22,9 +22,10 @@ All of these tags run implicitly if no tags are passed to `ansible-playbook`. Ea
   - bashrc - makes some additions to bashrc file, most to the path
   - docker-compose - installs docker-compse, and keeps it at latest non-alpha version
   - docker - installs docker
+  - doctl - installs the DigitalOcean API command-line interface, and keepts it at latest release
   - firewall - uninstalls ufw, installs firewalld, and manages firewall rules on multiple zones
   - git - configures git settings
-  - hub - install Github's hub utility and keeps it at latest non-alpha version
+  - hub - installs Github's hub utility and keeps it at latest non-alpha version
   - python-packages - installs user-specific and global python packages
   - repos - installs addtional repositories
   - system-packages - installs system packages and keeps them at latest
