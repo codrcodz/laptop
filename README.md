@@ -55,3 +55,67 @@ github_name: "codrcodz"
 email: "cody.l.cochran@gmail.com"
 homedir: "/home/ccochran"
 ```
+
+## Features
+
+Each tasks file (which maps one-to-one to a tag) is setup to be modular and have a specific purpose. This section of the `README.md` documents each one to give the user a better idea of whateach does.
+
+### bashrc
+
+This file adds one or more `~/.bashrc.d/<file>` files in order to bootstrap things like the `PATH` variable, ensuring certain commands are available. This tasks file should be OS-neutral.
+
+### docker-compose
+
+This file adds the `docker-compose` utility/command to the path fro Github Releases, and pulls from "latest" tag. This tasks file should be OS-neutral.
+
+### docker
+
+This file adds `docker` to the system through `apt`, and is not currently OS-neutral.
+
+### doctl
+
+This file adds `doctl` to the path by downloading from Github Releases, and pulls from the "latest" tag; should be OS-neutral.
+
+### firewall
+
+This file does quite a bit. First, it disables UFW and installs Firewalld; next, it parses zones and firewall rules to determine what rules are currently listed by port and service. Next, it adds any missing port/service rules based on inputs from the user via variables. Lastly, it removes any firewall rules that are _not_ listed by the user in their variables. This tag is not currently OS-neutral, but can be with minimal modifications.
+
+### git
+
+This file configures the _system-level_ gitconfig file located in `/etc/gitconfig`. It drops a git commit template, adds your Github username and email to your commit messages, and sets up the autorebase feature for new repos and branches. Autorebase allows for a user to run `git pull upstream --rebase` and automatically rewrite their `git log` to include any new commmits from upstream prior to pushing their latest commits to their origin (aka their fork) of the upstream repo. Assuming that no one else is working on the same features as you and as a result, you will not encounter any merge conflicts during the auto-rebase, this workflow automates the process of staying inline with upstream and keeps your `git log` clean of ugly noop git merges. This file is OS-neutral.
+
+### hub
+
+This file automates the installation and update of the `hub` utility from Github Releases and keeps it on whatever is tagged as "latest". This should be OS-neutral.
+
+### python-packages
+
+This file automates the installation and update of the miscellaneous python-packages passed to it by the user. Currently, the only thing installed globally is `docker-py` so that the docker-related tasks run properly. There are no provisions in the role for adding additional globally-installed python packages, beacause this should be done sparingly, and when it is absolutely required, it should be done via the system package manager, (assuming the pythong module has been packaged). All the package names passed by the user are installed with pip's `--user` option. Also note, python3 is assumed, so unless you do the leg work to ensure your OS is python3 enabled, this tasks file is not OS-neutral. If the OS is python3 enabled, this file is OS-neutral. Ubuntu 18.04 (and later) derived OSes use python3 by default.
+
+### repos
+
+This file adds some repositories used by other tasks to install system packages required by those tasks. It is not OS-neutral.
+
+### terraform
+
+This file installs the latest _non-alpha_ release of Terraform fro Hashicorp's website, performing gpg and hashsum checks along the way. Since terraform is written in Go and precompiled, and dropped in `/usr/local/bin/` this is an OS-neutral tasks file.
+
+### travis
+
+This file installs travis-ci's command-line interface utility via the Ruby `gem` utility and keeps it inline with the latest gem. As a result, the system package that provides the `gem` utility should be included in the dictionary fed to the `system-package.yml` tasks file, or (alternately) it should be installed and maintained via some other mechanism. Assuming `gem` is installed, this file is OS-neutral.
+
+### vagrant
+
+This file installs `vagrant` from Hashicorp's releases website. It scraps the directory structure for what appears to be the latest non-alpha release and installs it each time this tasks file is run. Since Hashicorp provides system packages for vagrant releases, this file installs the .deb package via `gdebi`. As a result, `gdebi` must be available. This tasks file also manages the installation of vagrant plugins passed by the user. This tasks file is _not_ OS-neutral.
+
+### docker-images
+
+This file installs the docker images specified by the user via variables. Since this can suck up some bandwidth, it does not run by default and must be explicitly called. It assumes `docker` is already installed and running. This file is OS_neutral.
+
+### storage
+
+*Warning*: This file has the potential to be extremely destructive, and should only be run on fresh systems, and should only be run once. This has the potential to *wipe drives* and *wipe LVM LVs, VGs, and PVs*. Use with caution. *This task does NOT run by default*. This tasks file is OS-neutral.
+
+### vagrant-boxes
+
+This file installs and updates vagrant boxes specified by the user. The underlying bash script that drives this tasks file, will accept a list of org/box/provider combinations and will attempt to install the latest box available that meets that description. Should that box not already be installed, it installs it. Should it be installed, it updates it, then attempts to prune the older version of the box, if it is not actively being used by a container. It does not remove boxes that are listed not in the variables by the user. Anything manually installed by the user will remain static. This file is OS-neutral. Due to the bandwidth required to execute this task, it does not run by default.
