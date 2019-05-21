@@ -1,1 +1,1 @@
-export PATH="/home/{{ username }}/.local/bin:$PATH"
+pathman "{{ homedir }}/.local/bin" check || pathman "{{ homedir }}/.local/bin" prepend;

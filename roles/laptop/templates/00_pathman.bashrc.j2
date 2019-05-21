@@ -1,0 +1,57 @@
+pathman() {
+  cleanpath() {
+    tempPATH=":${PATH}:";
+    tempPATH="${tempPATH//:$input_dir:/:}";
+    while [[ "${tempPATH}" =~ ([:]{2,}) ]];
+    do
+      tempPATH=${tempPATH//::/:};
+    done;
+    export tempPATH="${tempPATH:1:(-1)}";
+  }
+  checkpath() {
+    checkPATH="${1}";
+    if [[ ! "${checkPATH}" =~ ([:]{2,}) ]];
+    then
+      while read -r path_dir;
+      do
+        if [[ ! -d "${path_dir}" ]] || [[ "${path_dir:(-1)}" == "/" ]];
+        then
+          echo "[FAIL] Invalid directory path ("${path_dir}") detected; exiting without modifying \$PATH." >&2;
+          return 1;
+        fi;
+      done <<<${checkPATH//:/$'\n'}
+      export PATH="${checkPATH}";
+    else
+      echo "[FAIL] Invalid path detected; exiting without modifying \$PATH." >&2;
+      echo "[FAIL] => ${PATH}"; >&2
+      return 1;
+    fi;
+  }
+  input_dir="${1//:}";
+  action="${2//[^a-z]}";
+  case ${action} in
+    check)
+      if [[ ":${PATH}:" =~ ^.*:${input_dir}:.*$ ]];
+      then
+        { checkpath "${PATH}" && return 0; } || return 1;
+      else
+        checkpath "${PATH}";
+        return 1;
+      fi;
+      ;;
+    append)
+      cleanpath "${input_dir}" "${action}";
+      tempPATH="${tempPATH:+"$tempPATH:"}${input_dir}";
+      checkpath "${tempPATH}";
+      ;;
+    remove)
+      cleanpath "${input_dir}" "${action}";
+      checkpath "${tempPATH}";
+      ;;
+    prepend|*)
+      cleanpath "${input_dir}" "${action}";
+      tempPATH="${input_dir}:$tempPATH";
+      checkpath "${tempPATH}";
+      ;;
+  esac;
+}

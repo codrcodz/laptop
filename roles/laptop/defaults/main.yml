@@ -5,7 +5,7 @@ username: "ccochran"
 github_name: "codrcodz"
 email: "cody.l.cochran@gmail.com"
 homedir: "/home/ccochran"
-venv_tld: "{{ homedir }}/venv"
+laptop_venv_tld: "{{ homedir }}/.virtualenvs"
 
 laptop_internal_ports:
   - 2049/udp
@@ -104,6 +104,7 @@ laptop_packages:
   - virtualbox-guest-additions-iso
 
 laptop_bashrc_extensions:
+  - 00_pathman
   - virtualenvwrapper
   - localbins
   - snapd
