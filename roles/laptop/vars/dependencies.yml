@@ -1,0 +1,5 @@
+---
+role_deps:
+  - dest: "laptop"
+    repo: "git@github.com:codrcodz/laptop.git"
+    version: "master"
